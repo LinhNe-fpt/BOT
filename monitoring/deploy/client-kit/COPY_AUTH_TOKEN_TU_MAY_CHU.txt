@@ -1,0 +1,14 @@
+THIEU FILE auth.token
+=====================
+
+Tren MAY CHU (may chay monitoring-server.exe):
+  - Mo thu muc cung file .exe server
+  - Copy file ten  auth.token
+
+Tren MAY NHAN GOI (may nay):
+  - Dan file auth.token vao CUNG thu muc voi:
+    CAI_DAT.bat  va  pc-monitor-client.exe
+
+Token phai GIONG HET nhau giua may chu va may nay thi server moi nhan du lieu.
+
+Sau do chay  CAI_DAT.bat  (nhap IP may chu).

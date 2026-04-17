@@ -1,0 +1,18 @@
+BAT DAU — MAY NHAN GOI (gui ve may chu)
+=======================================
+
+Buoc 1: Copy file auth.token tu MAY CHU (canh monitoring-server.exe) vao CUNG thu muc nay.
+
+Buoc 2: Double-click  CAI_DAT.bat  — nhap IP MAY CHU (may chay server, vi du 192.168.6.64).
+
+Buoc 3: Chon C de tu dong chay khi dang nhap (Task Scheduler) — khuyen nghi.
+
+Buoc 4: Chon C de chay pc-monitor-client ngay. Xong.
+
+Lay token tren MAY NAY (de bao admin / doi chieu): double-click  LAY_TOKEN_MAY_NAY.bat
+
+Tat client / go task tu dong:  TAT_CLIENT.bat  (neu co STOP_PASSWORD trong agent.env thi nhap mat khau).
+
+Go cai dat day du:  UNINSTALL.bat  (dung exe, go task, xoa file cau hinh / exe tuy chon).
+
+Chi tiet: HUONG-DAN.txt

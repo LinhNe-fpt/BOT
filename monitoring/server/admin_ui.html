@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PC Monitor — Admin</title>
+  <link
+    rel="icon"
+    type="image/svg+xml"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect fill='%233d8bfd' width='32' height='32' rx='8'/%3E%3C/svg%3E"
+  />
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --surface2: #243044;
+      --border: #2d3a4d;
+      --text: #e7ecf3;
+      --muted: #8b9cb3;
+      --accent: #3d8bfd;
+      --accent-dim: #2563c4;
+      --success: #34c759;
+      --radius: 10px;
+      --font: "Segoe UI", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px 20px;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .token-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 200px;
+    }
+    .token-row label { font-size: 13px; color: var(--muted); white-space: nowrap; }
+    .token-row input {
+      flex: 1;
+      min-width: 160px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+    }
+    .token-row input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn:hover { background: var(--accent-dim); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-ghost {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { background: var(--border); }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(280px, 340px) 1fr;
+      gap: 0;
+      min-height: calc(100vh - 60px);
+    }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+    aside {
+      border-right: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100vh - 60px);
+      overflow: hidden;
+    }
+    @media (max-width: 900px) {
+      aside {
+        max-height: 42vh;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+    }
+    .aside-head {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    #machine-list {
+      overflow-y: auto;
+      padding: 10px;
+      flex: 1;
+    }
+    .machine-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      background: var(--bg);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .machine-card:hover {
+      border-color: var(--accent);
+    }
+    .machine-card.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+    .machine-card .title {
+      font-weight: 600;
+      font-size: 15px;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .machine-card .title .badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--surface2);
+      color: var(--muted);
+    }
+    .machine-card .meta {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    .machine-card .thumb {
+      margin-top: 10px;
+      border-radius: 6px;
+      overflow: hidden;
+      background: var(--surface2);
+      max-height: 100px;
+    }
+    .machine-card .thumb img {
+      width: 100%;
+      height: auto;
+      max-height: 100px;
+      object-fit: contain;
+      display: block;
+    }
+    main {
+      padding: 16px 20px 24px;
+      overflow-y: auto;
+      max-height: calc(100vh - 60px);
+    }
+    .gallery-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 8px 16px;
+      margin-bottom: 16px;
+    }
+    .gallery-header h2 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+    .gallery-header .sub {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .gallery-placeholder {
+      color: var(--muted);
+      padding: 48px 24px;
+      text-align: center;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+    .shot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+    }
+    .shot-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--surface);
+      transition: border-color 0.15s;
+    }
+    .shot-card:hover { border-color: var(--accent); }
+    .shot-card a.img-wrap {
+      display: block;
+      aspect-ratio: 16 / 10;
+      background: #000;
+    }
+    .shot-card a.img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .shot-card .caption {
+      padding: 8px 10px;
+      font-size: 11px;
+      color: var(--muted);
+      word-break: break-all;
+      border-top: 1px solid var(--border);
+    }
+    .shot-card .caption a { color: var(--accent); text-decoration: none; }
+    .shot-card .caption a:hover { text-decoration: underline; }
+    .err { color: #ff6b6b; font-size: 14px; margin: 8px 0; }
+    .loading { color: var(--muted); font-size: 14px; }
+    .modal-root {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      flex-direction: column;
+    }
+    .modal-root.show { display: flex; }
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.92);
+      cursor: pointer;
+    }
+    .modal-shell {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .modal-toolbar {
+      flex: 0 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 12px;
+      padding: 10px 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-toolbar .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-left: auto;
+    }
+    #modal-zoom-pct {
+      min-width: 52px;
+      text-align: center;
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+    }
+    .modal-viewport {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      padding: 16px;
+      text-align: center;
+      cursor: grab;
+    }
+    .modal-viewport:active { cursor: grabbing; }
+    .modal-zoom-wrap {
+      display: inline-block;
+      transform-origin: center top;
+      transition: transform 0.1s ease-out;
+      vertical-align: top;
+    }
+    #modal-img {
+      display: block;
+      max-width: min(96vw, 100%);
+      width: auto;
+      height: auto;
+      border-radius: 4px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+    .dns-panel {
+      margin-bottom: 16px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+    .dns-panel h3 {
+      margin: 0 0 8px;
+      font-size: 0.95rem;
+    }
+    .dns-note {
+      margin: 0 0 8px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .dns-list {
+      margin: 0;
+      padding-left: 1.2rem;
+      max-height: 160px;
+      overflow-y: auto;
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.5;
+      word-break: break-all;
+    }
+    .stat-bar-wrap {
+      margin-top: 8px;
+    }
+    .stat-bar-wrap:first-child { margin-top: 0; }
+    .stat-bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .stat-bar-track {
+      height: 5px;
+      border-radius: 3px;
+      background: var(--surface2);
+      overflow: hidden;
+    }
+    .stat-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, var(--accent-dim), var(--accent));
+      transition: width 0.25s ease;
+    }
+    .stat-bar-fill.warn {
+      background: linear-gradient(90deg, #b45309, #f59e0b);
+    }
+    .stat-bar-fill.danger {
+      background: linear-gradient(90deg, #991b1b, #ef4444);
+    }
+    .card-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 6px;
+      margin-top: 8px;
+    }
+    .chip {
+      font-size: 10px;
+      font-weight: 500;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .chip-net { border-color: #1d4ed8; color: #93c5fd; }
+    .chip-browser { border-color: #047857; color: #6ee7b7; }
+    .chip-dns { border-color: #6d28d9; color: #c4b5fd; }
+    .chip-shot { border-color: #b45309; color: #fcd34d; }
+    .metrics-panel {
+      margin-bottom: 18px;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+    .metrics-panel-title {
+      margin: 0 0 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+    }
+    .metric-tile {
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+    }
+    .metric-tile .m-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .metric-tile .m-value {
+      font-size: 1.05rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+    .metric-tile .m-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+      line-height: 1.35;
+    }
+    .metric-tile .stat-bar-track { margin-top: 8px; }
+    .disk-mini-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      margin-top: 6px;
+    }
+    .disk-mini-row:first-of-type { margin-top: 0; }
+    .disk-mini-row .mount {
+      flex: 0 0 auto;
+      max-width: 72px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--muted);
+    }
+    .disk-mini-row .stat-bar-track { flex: 1; min-width: 0; }
+    .disk-mini-row .pct {
+      flex: 0 0 32px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>PC Monitor — Admin</h1>
+    <div class="token-row">
+      <label for="token">Token</label>
+      <input id="token" type="password" autocomplete="off" placeholder="ADMIN_TOKEN hoặc BEARER_TOKEN" />
+      <button type="button" class="btn" id="btn-load">Tải danh sách máy</button>
+      <button type="button" class="btn btn-ghost" id="btn-refresh-shots" disabled>Làm mới ảnh</button>
+    </div>
+  </header>
+  <div class="layout">
+    <aside>
+      <div class="aside-head">Máy đã cài agent</div>
+      <div id="machine-list"></div>
+    </aside>
+    <main>
+      <div id="gallery-area">
+        <div class="gallery-placeholder">Chọn một máy bên trái để xem bộ ảnh màn hình.</div>
+      </div>
+    </main>
+  </div>
+  <div id="modal" class="modal-root" aria-hidden="true">
+    <div class="modal-backdrop" id="modal-backdrop" title="Đóng"></div>
+    <div class="modal-shell">
+      <div class="modal-toolbar">
+        <button type="button" class="btn btn-ghost" id="modal-zoom-out" title="Thu nhỏ">−</button>
+        <span id="modal-zoom-pct">100%</span>
+        <button type="button" class="btn btn-ghost" id="modal-zoom-in" title="Phóng to">+</button>
+        <button type="button" class="btn btn-ghost" id="modal-zoom-reset" title="Vừa khung">Vừa khung</button>
+        <button type="button" class="btn btn-ghost" id="modal-sharpen" title="Phóng to nội suy + làm rõ nhẹ (không phải AI)">
+          Nâng chất lượng
+        </button>
+        <button type="button" class="btn btn-ghost" id="modal-original" disabled title="Khôi phục ảnh tải từ server">
+          Ảnh gốc
+        </button>
+        <button type="button" class="btn" id="modal-close">Đóng</button>
+        <span class="hint"
+          >Nâng CL = phóng to mịn + unsharp nhẹ trên trình duyệt (không tạo chi tiết mới như AI) · không ghi server ·
+          con lăn = zoom</span>
+      </div>
+      <div class="modal-viewport" id="modal-viewport">
+        <div class="modal-zoom-wrap" id="modal-zoom-wrap">
+          <img id="modal-img" alt="Ảnh màn hình" />
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var tokenEl = document.getElementById("token");
+      var listEl = document.getElementById("machine-list");
+      var galleryArea = document.getElementById("gallery-area");
+      var btnLoad = document.getElementById("btn-load");
+      var btnRefreshShots = document.getElementById("btn-refresh-shots");
+      var modalRoot = document.getElementById("modal");
+      var modalBackdrop = document.getElementById("modal-backdrop");
+      var modalImg = document.getElementById("modal-img");
+      var modalZoomWrap = document.getElementById("modal-zoom-wrap");
+      var modalViewport = document.getElementById("modal-viewport");
+      var modalZoomPct = document.getElementById("modal-zoom-pct");
+      var btnModalZoomIn = document.getElementById("modal-zoom-in");
+      var btnModalZoomOut = document.getElementById("modal-zoom-out");
+      var btnModalZoomReset = document.getElementById("modal-zoom-reset");
+      var btnModalClose = document.getElementById("modal-close");
+      var btnModalSharpen = document.getElementById("modal-sharpen");
+      var btnModalOriginal = document.getElementById("modal-original");
+      var modalScale = 1;
+      var modalOriginalSrc = null;
+      /** 0 = chua xu ly, 1 = pass nhe (~1.75x), 2 = pass man (~2x tu goc) */
+      var modalEnhanceTier = 0;
+      var MODAL_ENHANCE_MAX_OUT_MP = 14;
+      var MODAL_ZOOM_MIN = 0.2;
+      var MODAL_ZOOM_MAX = 8;
+      var MODAL_ZOOM_STEP = 1.2;
+
+      var stored = sessionStorage.getItem("monitor_admin_token");
+      if (stored) tokenEl.value = stored;
+
+      var selectedFolder = null;
+      var selectedTitle = null;
+      var selectedAgent = null;
+
+      function formatDnsPanelHtml() {
+        if (
+          !selectedAgent ||
+          !selectedAgent.dns_recent_domains ||
+          !selectedAgent.dns_recent_domains.length
+        ) {
+          return "";
+        }
+        var note = selectedAgent.dns_recent_domains_note || "";
+        var ul = '<ul class="dns-list">';
+        for (var i = 0; i < selectedAgent.dns_recent_domains.length; i++) {
+          ul += "<li>" + esc(selectedAgent.dns_recent_domains[i]) + "</li>";
+        }
+        ul += "</ul>";
+        return (
+          '<div class="dns-panel">' +
+          "<h3>Tên miền (DNS cache Windows)</h3>" +
+          '<p class="dns-note">' +
+          esc(note) +
+          "</p>" +
+          ul +
+          "</div>"
+        );
+      }
+
+      /** Trim, bỏ BOM UTF-8, chỉ lấy dòng đầu (tránh dán cả file có chú thích). */
+      function getAdminTokenNormalized() {
+        var s = String(tokenEl.value || "").replace(/^\uFEFF/, "").trim();
+        var crlf = s.indexOf("\r\n");
+        var nl = s.indexOf("\n");
+        var cut = crlf >= 0 ? crlf : nl;
+        if (cut >= 0) s = s.slice(0, cut).trim();
+        return s;
+      }
+
+      /** Fetch chỉ chấp nhận header ISO-8859-1 (code point ≤ 255). */
+      function tokenIsHttpHeaderSafe(t) {
+        for (var i = 0; i < t.length; i++) {
+          if (t.charCodeAt(i) > 255) return false;
+        }
+        return true;
+      }
+
+      function authHeaders() {
+        var t = getAdminTokenNormalized();
+        if (!t || !tokenIsHttpHeaderSafe(t)) return null;
+        return { Authorization: "Bearer " + t };
+      }
+
+      function saveToken() {
+        var t = getAdminTokenNormalized();
+        if (t) sessionStorage.setItem("monitor_admin_token", t);
+        else sessionStorage.removeItem("monitor_admin_token");
+      }
+
+      function esc(s) {
+        if (s == null) return "";
+        var d = document.createElement("div");
+        d.textContent = s;
+        return d.innerHTML;
+      }
+
+      function fmtBytes(n) {
+        if (n == null || n === "") return "";
+        var x = Number(n);
+        if (!isFinite(x) || x < 0) return "";
+        if (x < 1024) return x + " B";
+        if (x < 1048576) return (x / 1024).toFixed(1) + " KiB";
+        if (x < 1073741824) return (x / 1048576).toFixed(2) + " MiB";
+        return (x / 1073741824).toFixed(2) + " GiB";
+      }
+
+      function barClassForPct(p) {
+        if (p >= 90) return "danger";
+        if (p >= 75) return "warn";
+        return "";
+      }
+
+      function miniBar(pct) {
+        var p = Number(pct);
+        if (!isFinite(p)) p = 0;
+        p = Math.max(0, Math.min(100, p));
+        return (
+          '<div class="stat-bar-track"><div class="stat-bar-fill ' +
+          esc(barClassForPct(p)) +
+          '" style="width:' +
+          p +
+          '%"></div></div>'
+        );
+      }
+
+      function statBar(label, pct) {
+        var p = Number(pct);
+        if (!isFinite(p)) p = 0;
+        p = Math.max(0, Math.min(100, p));
+        var cls = barClassForPct(p);
+        return (
+          '<div class="stat-bar-wrap">' +
+          '<div class="stat-bar-label"><span>' +
+          esc(label) +
+          '</span><span>' +
+          esc(String(Math.round(p))) +
+          '%</span></div>' +
+          '<div class="stat-bar-track"><div class="stat-bar-fill ' +
+          esc(cls) +
+          '" style="width:' +
+          p +
+          '%"></div></div></div>'
+        );
+      }
+
+      function fmtBitrate(bytesPerSec) {
+        if (bytesPerSec == null || !isFinite(bytesPerSec) || bytesPerSec < 0) return "—";
+        var bps = bytesPerSec * 8;
+        if (bps < 1000) return Math.round(bps) + " b/s";
+        if (bps < 1e6) return (bps / 1000).toFixed(1) + " Kb/s";
+        return (bps / 1e6).toFixed(2) + " Mb/s";
+      }
+
+      function netIntervalRates(a) {
+        var sec = Number(a.network_io_interval_sec);
+        if (!isFinite(sec) || sec <= 0) return { up: null, down: null };
+        if (a.network_bytes_sent == null || a.network_bytes_recv == null)
+          return { up: null, down: null };
+        return {
+          up: a.network_bytes_sent / sec,
+          down: a.network_bytes_recv / sec,
+        };
+      }
+
+      function formatDiskRows(disk) {
+        if (!disk || typeof disk !== "object") return "";
+        var keys = Object.keys(disk);
+        keys.sort();
+        var max = 6;
+        var html = "";
+        for (var i = 0; i < keys.length && i < max; i++) {
+          var mount = keys[i];
+          var pct = Number(disk[mount]);
+          if (!isFinite(pct)) pct = 0;
+          pct = Math.max(0, Math.min(100, pct));
+          html +=
+            '<div class="disk-mini-row">' +
+            '<span class="mount" title="' +
+            esc(mount) +
+            '">' +
+            esc(mount) +
+            "</span>" +
+            '<div class="stat-bar-track"><div class="stat-bar-fill ' +
+            esc(barClassForPct(pct)) +
+            '" style="width:' +
+            pct +
+            '%"></div></div>' +
+            '<span class="pct">' +
+            esc(String(Math.round(pct))) +
+            "%</span></div>";
+        }
+        if (keys.length > max) {
+          html +=
+            '<div class="m-sub" style="margin-top:6px">+' +
+            (keys.length - max) +
+            " ổ…</div>";
+        }
+        return html;
+      }
+
+      function formatCardBars(a) {
+        var html = "";
+        if (a.cpu_percent != null) html += statBar("CPU", a.cpu_percent);
+        var ramPct = a.memory_percent != null ? a.memory_percent : a.ram_percent;
+        if (ramPct != null) html += statBar("RAM", ramPct);
+        return html;
+      }
+
+      function formatCardChips(a) {
+        var chips = [];
+        if (a.network_bytes_sent != null && a.network_bytes_recv != null) {
+          chips.push(
+            '<span class="chip chip-net" title="Một chu kỳ agent">' +
+              "↑" +
+              fmtBytes(a.network_bytes_sent) +
+              " ↓" +
+              fmtBytes(a.network_bytes_recv) +
+              "</span>"
+          );
+        }
+        if (
+          a.browser_foreground_interval_sec != null &&
+          Number(a.browser_foreground_interval_sec) > 0
+        ) {
+          chips.push(
+            '<span class="chip chip-browser">' +
+              esc(String(a.browser_foreground_interval_sec)) +
+              "s web</span>"
+          );
+        }
+        if (a.dns_recent_domains && a.dns_recent_domains.length) {
+          chips.push(
+            '<span class="chip chip-dns">' + a.dns_recent_domains.length + " DNS</span>"
+          );
+        }
+        if (a.screenshot_count != null && Number(a.screenshot_count) > 0) {
+          chips.push(
+            '<span class="chip chip-shot">' + a.screenshot_count + " ảnh</span>"
+          );
+        }
+        if (!chips.length) return "";
+        return '<div class="card-chips">' + chips.join("") + "</div>";
+      }
+
+      function formatMetricsPanelHtml(a) {
+        if (!a) return "";
+        var ramPct = a.memory_percent != null ? a.memory_percent : a.ram_percent;
+        var rates = netIntervalRates(a);
+        var intvStr =
+          a.network_io_interval_sec != null
+            ? esc(String(a.network_io_interval_sec)) + "s"
+            : "—";
+        var browserSub =
+          "Cửa sổ trình duyệt (Chrome, Edge, Firefox…) đang nhận focus trong chu kỳ.";
+        if (a.browser_foreground_interval_sec != null && a.network_io_interval_sec != null) {
+          var isec = Number(a.network_io_interval_sec);
+          var bsec = Number(a.browser_foreground_interval_sec);
+          if (isFinite(isec) && isec > 0 && isFinite(bsec) && bsec >= 0) {
+            browserSub =
+              "~" +
+              Math.min(100, Math.round((bsec / isec) * 100)) +
+              "% thời gian chu kỳ · " +
+              browserSub;
+          }
+        }
+        var parts = [];
+        parts.push('<section class="metrics-panel">');
+        parts.push('<h3 class="metrics-panel-title">Chỉ số máy (bản tin gần nhất)</h3>');
+        parts.push('<div class="metrics-grid">');
+
+        parts.push('<div class="metric-tile"><div class="m-label">Hệ thống</div>');
+        parts.push('<div class="m-value">' + esc(a.os || "—") + "</div>");
+        if (a.os_version)
+          parts.push(
+            '<div class="m-sub">' + esc(String(a.os_version).slice(0, 140)) + "</div>"
+          );
+        if (a.cpu_count != null)
+          parts.push(
+            '<div class="m-sub">' + esc(String(a.cpu_count)) + " luồng CPU</div>"
+          );
+        parts.push(
+          '<div class="m-sub">Cập nhật: ' + esc(formatSeen(a.last_seen)) + "</div>"
+        );
+        parts.push("</div>");
+
+        parts.push('<div class="metric-tile"><div class="m-label">CPU</div>');
+        parts.push(
+          '<div class="m-value">' +
+            (a.cpu_percent != null
+              ? esc(String(Math.round(Number(a.cpu_percent)))) + "%"
+              : "—") +
+            "</div>"
+        );
+        if (a.cpu_percent != null) parts.push(miniBar(a.cpu_percent));
+        parts.push("</div>");
+
+        parts.push('<div class="metric-tile"><div class="m-label">Bộ nhớ</div>');
+        parts.push(
+          '<div class="m-value">' +
+            (ramPct != null ? esc(String(Math.round(Number(ramPct)))) + "%" : "—") +
+            "</div>"
+        );
+        if (a.memory_used != null && a.memory_total != null) {
+          parts.push(
+            '<div class="m-sub">' +
+              fmtBytes(a.memory_used) +
+              " / " +
+              fmtBytes(a.memory_total) +
+              "</div>"
+          );
+        }
+        if (ramPct != null) parts.push(miniBar(ramPct));
+        parts.push("</div>");
+
+        parts.push('<div class="metric-tile"><div class="m-label">Ổ đĩa</div>');
+        var diskH = formatDiskRows(a.disk_usage);
+        parts.push(diskH ? diskH : '<div class="m-value">—</div>');
+        parts.push("</div>");
+
+        parts.push('<div class="metric-tile"><div class="m-label">Lưu lượng (chu kỳ)</div>');
+        if (a.network_bytes_sent != null && a.network_bytes_recv != null) {
+          parts.push(
+            '<div class="m-value">↑ ' + fmtBytes(a.network_bytes_sent) + "</div>"
+          );
+          parts.push(
+            '<div class="m-sub">↓ ' + fmtBytes(a.network_bytes_recv) + "</div>"
+          );
+          if (rates.up != null) {
+            parts.push(
+              '<div class="m-sub">Tốc độ trung bình (chu kỳ): ↑ ' +
+                fmtBitrate(rates.up) +
+                " · ↓ " +
+                fmtBitrate(rates.down) +
+                "</div>"
+            );
+          }
+          parts.push('<div class="m-sub">Δt ≈ ' + intvStr + " · tổng mọi NIC</div>");
+        } else {
+          parts.push('<div class="m-value">—</div>');
+          parts.push(
+            '<div class="m-sub">Chưa có dữ liệu hoặc tắt TRACK_NETWORK_IO</div>'
+          );
+        }
+        parts.push("</div>");
+
+        parts.push('<div class="metric-tile"><div class="m-label">Trình duyệt (focus)</div>');
+        parts.push(
+          '<div class="m-value">' +
+            (a.browser_foreground_interval_sec != null
+              ? esc(String(a.browser_foreground_interval_sec)) + "s"
+              : "—") +
+            "</div>"
+        );
+        parts.push('<div class="m-sub">' + browserSub + "</div>");
+        parts.push("</div>");
+
+        parts.push('<div class="metric-tile"><div class="m-label">DNS & ảnh</div>');
+        var dnsC =
+          a.dns_recent_domains && a.dns_recent_domains.length
+            ? a.dns_recent_domains.length
+            : 0;
+        parts.push(
+          '<div class="m-value">' +
+            dnsC +
+            " tên miền</div>"
+        );
+        parts.push(
+          '<div class="m-sub">' +
+            (a.screenshot_count != null ? a.screenshot_count : 0) +
+            " ảnh đã lưu trên máy chủ</div>"
+        );
+        parts.push("</div>");
+
+        parts.push("</div></section>");
+        return parts.join("");
+      }
+
+      function formatSeen(seen) {
+        if (seen == null || seen === "") return "—";
+        var n = Number(seen);
+        if (!isNaN(n) && isFinite(n) && n > 946684800) {
+          try {
+            return new Date(n * 1000).toLocaleString();
+          } catch (e) {}
+        }
+        return String(seen);
+      }
+
+      function showError(msg) {
+        listEl.innerHTML = '<p class="err">' + esc(msg) + "</p>";
+      }
+
+      function loadAgents() {
+        var t = getAdminTokenNormalized();
+        if (!t) {
+          showError("Nhập token trước.");
+          return;
+        }
+        if (!tokenIsHttpHeaderSafe(t)) {
+          showError(
+            "Token có ký tự không gửi được trong header (ví dụ chữ có dấu, emoji). Trình duyệt chỉ chấp nhận ISO-8859-1. Hãy copy đúng một dòng token ASCII từ file auth.token, không kèm chú thích."
+          );
+          return;
+        }
+        tokenEl.value = t;
+        saveToken();
+        var h = authHeaders();
+        listEl.innerHTML = '<p class="loading">Đang tải…</p>';
+        fetch("/api/admin/agents", { headers: h })
+          .then(function (r) {
+            if (!r.ok) throw new Error(r.status === 401 ? "401 — token sai" : "Lỗi " + r.status);
+            return r.json();
+          })
+          .then(function (data) {
+            var agents = data.agents || [];
+            if (!agents.length) {
+              selectedAgent = null;
+              listEl.innerHTML = '<p class="loading">Chưa có agent nào gửi dữ liệu.</p>';
+              galleryArea.innerHTML =
+                '<div class="gallery-placeholder">Chưa có máy. Khi agent báo cáo, danh sách sẽ hiện bên trái.</div>';
+              btnRefreshShots.disabled = true;
+              return;
+            }
+            listEl.innerHTML = "";
+            agents.forEach(function (a) {
+              var card = document.createElement("div");
+              card.className = "machine-card";
+              card.dataset.folder = a.folder_key || "";
+              var title =
+                a.device_title || a.hostname || a.agent_id || "—";
+              var hostMeta =
+                a.display_name && a.hostname
+                  ? "<br/>Hostname máy: " + esc(a.hostname)
+                  : "";
+              var os = a.os || "—";
+              var seen = a.last_seen || "—";
+              var thumbHtml = "";
+              var screenUrl =
+                (a.latest_screen && a.latest_screen.url) || a.latest_screen_url || "";
+              if (screenUrl) {
+                thumbHtml =
+                  '<div class="thumb"><img src="' +
+                  esc(screenUrl) +
+                  '" alt="" loading="lazy" onerror="var w=this.closest(\'.thumb\');if(w)w.remove();"/></div>';
+              }
+              var osVerLine =
+                a.os_version && String(a.os_version).trim()
+                  ? "<br/><span style=\"opacity:0.85\">" +
+                    esc(String(a.os_version).slice(0, 100)) +
+                    (String(a.os_version).length > 100 ? "…" : "") +
+                    "</span>"
+                  : "";
+              card.innerHTML =
+                '<div class="title">' +
+                esc(title) +
+                ' <span class="badge">' +
+                esc(a.agent_id || "") +
+                "</span></div>" +
+                formatCardBars(a) +
+                formatCardChips(a) +
+                '<div class="meta">' +
+                esc(os) +
+                hostMeta +
+                "<br/>Lần cuối: " +
+                esc(formatSeen(seen)) +
+                osVerLine +
+                "</div>" +
+                thumbHtml;
+              card.addEventListener("click", function () {
+                document.querySelectorAll(".machine-card").forEach(function (c) {
+                  c.classList.remove("active");
+                });
+                card.classList.add("active");
+                selectedFolder = card.dataset.folder;
+                selectedTitle = title;
+                selectedAgent = a;
+                btnRefreshShots.disabled = !selectedFolder;
+                loadGallery();
+              });
+              listEl.appendChild(card);
+            });
+          })
+          .catch(function (e) {
+            showError(e.message || String(e));
+          });
+      }
+
+      function loadGallery() {
+        if (!selectedFolder) return;
+        var t = getAdminTokenNormalized();
+        if (!t || !tokenIsHttpHeaderSafe(t)) {
+          galleryArea.innerHTML =
+            '<p class="err">Token không hợp lệ cho trình duyệt (xem thông báo khi tải danh sách máy).</p>';
+          return;
+        }
+        var h = authHeaders();
+        if (!h) return;
+        var metricsHtml = formatMetricsPanelHtml(selectedAgent);
+        var dnsPrefix = formatDnsPanelHtml();
+        galleryArea.innerHTML =
+          metricsHtml + dnsPrefix + '<p class="loading">Đang tải ảnh…</p>';
+        var url = "/api/admin/gallery/" + encodeURIComponent(selectedFolder);
+        fetch(url, { headers: h })
+          .then(function (r) {
+            if (!r.ok) throw new Error(r.status === 404 ? "Không có thư mục ảnh" : "Lỗi " + r.status);
+            return r.json();
+          })
+          .then(function (data) {
+            var items = data.items || [];
+            var count = data.count != null ? data.count : items.length;
+            var filesBase = "/files/" + encodeURIComponent(data.folder_key) + "/";
+            var head =
+              '<div class="gallery-header"><h2>' +
+              esc(selectedTitle || data.folder_key) +
+              '</h2><span class="sub">' +
+              count +
+              " ảnh · mới nhất trước · " +
+              '<a href="' +
+              filesBase +
+              '" target="_blank" rel="noopener" style="color:var(--accent)">Mở trang gallery HTML</a></span></div>';
+
+            if (!items.length) {
+              galleryArea.innerHTML =
+                metricsHtml +
+                dnsPrefix +
+                head +
+                '<div class="gallery-placeholder">Chưa có ảnh JPEG trong thư mục này.</div>';
+              return;
+            }
+
+            var grid = document.createElement("div");
+            grid.className = "shot-grid";
+            items.forEach(function (it) {
+              var u = it.url || "";
+              var name = it.name || "";
+              var mt = it.mtime_label || "";
+              var cell = document.createElement("div");
+              cell.className = "shot-card";
+              cell.innerHTML =
+                '<a class="img-wrap" href="' +
+                esc(u) +
+                '" data-full="' +
+                esc(u) +
+                '" target="_blank" rel="noopener"><img src="' +
+                esc(u) +
+                '" alt="" loading="lazy" onerror="this.alt=\'(không tải được ảnh)\';this.style.opacity=0.35"/></a>' +
+                '<div class="caption"><a href="' +
+                esc(u) +
+                '" target="_blank" rel="noopener">' +
+                esc(name) +
+                "</a><br/>" +
+                esc(mt) +
+                "</div>";
+              var wrap = cell.querySelector("a.img-wrap");
+              wrap.addEventListener("click", function (ev) {
+                if (ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.button !== 0) return;
+                ev.preventDefault();
+                openLightbox(wrap.getAttribute("data-full") || u);
+              });
+              grid.appendChild(cell);
+            });
+            galleryArea.innerHTML = metricsHtml + dnsPrefix + head;
+            galleryArea.appendChild(grid);
+          })
+          .catch(function (e) {
+            var mh = formatMetricsPanelHtml(selectedAgent);
+            var dp = formatDnsPanelHtml();
+            galleryArea.innerHTML =
+              mh + dp + '<p class="err">' + esc(e.message || String(e)) + "</p>";
+          });
+      }
+
+      function setModalScale(s) {
+        modalScale = Math.max(MODAL_ZOOM_MIN, Math.min(MODAL_ZOOM_MAX, s));
+        modalZoomWrap.style.transform = "scale(" + modalScale + ")";
+        modalZoomPct.textContent = Math.round(modalScale * 100) + "%";
+      }
+
+      function clampUpscaleScale(w0, h0, scale) {
+        var maxPx = MODAL_ENHANCE_MAX_OUT_MP * 1e6;
+        var s = scale;
+        while (w0 * h0 * s * s > maxPx && s > 1.15) {
+          s -= 0.08;
+        }
+        return Math.max(1.15, Math.round(s * 100) / 100);
+      }
+
+      /**
+       * Unsharp nhe: out = orig + amount * (orig - blur), blur = trung binh 3x3.
+       * Khong dung Laplacian / vien sang (giong tich chap +5 -1).
+       */
+      function mildUnsharpImageData(imageData, amount) {
+        var w = imageData.width;
+        var h = imageData.height;
+        var d = imageData.data;
+        var src = new Uint8ClampedArray(d);
+        var a = amount;
+        for (var y = 1; y < h - 1; y++) {
+          for (var x = 1; x < w - 1; x++) {
+            var base = (y * w + x) * 4;
+            for (var c = 0; c < 3; c++) {
+              var sum = 0;
+              for (var dy = -1; dy <= 1; dy++) {
+                for (var dx = -1; dx <= 1; dx++) {
+                  sum += src[base + (dy * w + dx) * 4 + c];
+                }
+              }
+              var blur = sum / 9;
+              var orig = src[base + c];
+              var v = orig + a * (orig - blur);
+              d[base + c] = v < 0 ? 0 : v > 255 ? 255 : v | 0;
+            }
+          }
+        }
+      }
+
+      /**
+       * Phong to noi suy chat luong cao + unsharp nhe — "tang chat luong xem", khong tao pixel moi nhu AI.
+       */
+      function upscaleQualityToDataUrl(imgEl, scale, unsharpAmount) {
+        var w0 = imgEl.naturalWidth;
+        var h0 = imgEl.naturalHeight;
+        if (!w0 || !h0) return null;
+        var mpIn = (w0 * h0) / 1e6;
+        if (mpIn > 20) {
+          window.alert(
+            "Ảnh gốc quá lớn (~" +
+              mpIn.toFixed(1) +
+              " MP). Hãy tải về và dùng lam_ro_net_anh.py hoặc công cụ AI super-resolution trên máy."
+          );
+          return null;
+        }
+        var sc = clampUpscaleScale(w0, h0, scale);
+        var w1 = Math.max(1, Math.round(w0 * sc));
+        var h1 = Math.max(1, Math.round(h0 * sc));
+        var canvas = document.createElement("canvas");
+        canvas.width = w1;
+        canvas.height = h1;
+        var ctx = canvas.getContext("2d");
+        if (!ctx) return null;
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(imgEl, 0, 0, w1, h1);
+        var id = ctx.getImageData(0, 0, w1, h1);
+        mildUnsharpImageData(id, unsharpAmount);
+        ctx.putImageData(id, 0, 0);
+        try {
+          return canvas.toDataURL("image/jpeg", 0.93);
+        } catch (err) {
+          window.alert(
+            "Không đọc được pixel (CORS / ảnh từ nguồn khác). Cần mở admin và ảnh cùng một site."
+          );
+          return null;
+        }
+      }
+
+      function loadImageFromUrl(url, done) {
+        var im = new Image();
+        im.onload = function () {
+          done(im);
+        };
+        im.onerror = function () {
+          done(null);
+        };
+        im.src = url;
+      }
+
+      function openLightbox(url) {
+        modalScale = 1;
+        modalZoomWrap.style.transform = "scale(1)";
+        modalZoomPct.textContent = "100%";
+        modalOriginalSrc = url;
+        modalEnhanceTier = 0;
+        if (btnModalOriginal) btnModalOriginal.disabled = true;
+        if (btnModalSharpen) {
+          btnModalSharpen.disabled = false;
+          btnModalSharpen.textContent = "Nâng chất lượng";
+        }
+        modalImg.onload = function () {
+          modalViewport.scrollLeft = 0;
+          modalViewport.scrollTop = 0;
+        };
+        modalImg.src = url;
+        modalRoot.classList.add("show");
+        modalRoot.setAttribute("aria-hidden", "false");
+      }
+
+      function closeModal() {
+        modalRoot.classList.remove("show");
+        modalRoot.setAttribute("aria-hidden", "true");
+        modalImg.src = "";
+        modalImg.onload = null;
+        modalScale = 1;
+        modalZoomWrap.style.transform = "scale(1)";
+        modalZoomPct.textContent = "100%";
+        modalOriginalSrc = null;
+        modalEnhanceTier = 0;
+        if (btnModalOriginal) btnModalOriginal.disabled = true;
+        if (btnModalSharpen) {
+          btnModalSharpen.disabled = false;
+          btnModalSharpen.textContent = "Nâng chất lượng";
+        }
+      }
+
+      modalBackdrop.addEventListener("click", closeModal);
+      btnModalClose.addEventListener("click", closeModal);
+      btnModalSharpen.addEventListener("click", function (ev) {
+        ev.stopPropagation();
+        if (!modalOriginalSrc || modalEnhanceTier >= 2) return;
+        var nextTier = modalEnhanceTier + 1;
+        var wantScale = nextTier === 1 ? 1.75 : 2.05;
+        var wantUnsharp = nextTier === 1 ? 0.34 : 0.2;
+        btnModalSharpen.disabled = true;
+        btnModalSharpen.textContent = "Đang xử lý…";
+        window.setTimeout(function () {
+          loadImageFromUrl(modalOriginalSrc, function (im) {
+            if (!im || !im.naturalWidth) {
+              if (btnModalSharpen) {
+                btnModalSharpen.disabled = false;
+                btnModalSharpen.textContent =
+                  modalEnhanceTier === 0 ? "Nâng chất lượng" : "Nâng thêm (2×)";
+              }
+              return;
+            }
+            var dataUrl = upscaleQualityToDataUrl(im, wantScale, wantUnsharp);
+            if (dataUrl) {
+              modalEnhanceTier = nextTier;
+              modalImg.src = dataUrl;
+              if (btnModalOriginal) btnModalOriginal.disabled = false;
+              if (btnModalSharpen) {
+                btnModalSharpen.disabled = modalEnhanceTier >= 2;
+                btnModalSharpen.textContent =
+                  modalEnhanceTier >= 2 ? "Đã tối đa (từ ảnh gốc)" : "Nâng thêm (2×)";
+              }
+            } else {
+              if (btnModalSharpen) {
+                btnModalSharpen.disabled = false;
+                btnModalSharpen.textContent =
+                  modalEnhanceTier === 0 ? "Nâng chất lượng" : "Nâng thêm (2×)";
+              }
+            }
+          });
+        }, 20);
+      });
+      btnModalOriginal.addEventListener("click", function (ev) {
+        ev.stopPropagation();
+        if (!modalOriginalSrc) return;
+        modalEnhanceTier = 0;
+        modalImg.src = modalOriginalSrc;
+        if (btnModalOriginal) btnModalOriginal.disabled = true;
+        if (btnModalSharpen) {
+          btnModalSharpen.disabled = false;
+          btnModalSharpen.textContent = "Nâng chất lượng";
+        }
+      });
+      btnModalZoomIn.addEventListener("click", function (ev) {
+        ev.stopPropagation();
+        setModalScale(modalScale * MODAL_ZOOM_STEP);
+      });
+      btnModalZoomOut.addEventListener("click", function (ev) {
+        ev.stopPropagation();
+        setModalScale(modalScale / MODAL_ZOOM_STEP);
+      });
+      btnModalZoomReset.addEventListener("click", function (ev) {
+        ev.stopPropagation();
+        setModalScale(1);
+        modalViewport.scrollLeft = 0;
+        modalViewport.scrollTop = 0;
+      });
+      modalViewport.addEventListener("click", function (ev) {
+        ev.stopPropagation();
+      });
+      var modalShell = document.querySelector(".modal-shell");
+      modalShell.addEventListener("click", function (ev) {
+        ev.stopPropagation();
+      });
+      modalViewport.addEventListener(
+        "wheel",
+        function (ev) {
+          if (!modalRoot.classList.contains("show")) return;
+          ev.preventDefault();
+          var up = ev.deltaY < 0;
+          setModalScale(modalScale * (up ? MODAL_ZOOM_STEP : 1 / MODAL_ZOOM_STEP));
+        },
+        { passive: false }
+      );
+      document.addEventListener("keydown", function (ev) {
+        if (!modalRoot.classList.contains("show")) return;
+        if (ev.key === "Escape") {
+          closeModal();
+          return;
+        }
+        if (ev.key === "+" || ev.key === "=") {
+          ev.preventDefault();
+          setModalScale(modalScale * MODAL_ZOOM_STEP);
+        }
+        if (ev.key === "-" || ev.key === "_") {
+          ev.preventDefault();
+          setModalScale(modalScale / MODAL_ZOOM_STEP);
+        }
+        if (ev.key === "0") {
+          ev.preventDefault();
+          setModalScale(1);
+          modalViewport.scrollLeft = 0;
+          modalViewport.scrollTop = 0;
+        }
+      });
+
+      btnLoad.addEventListener("click", loadAgents);
+      btnRefreshShots.addEventListener("click", function () {
+        if (selectedFolder) loadGallery();
+      });
+    })();
+  </script>
+</body>
+</html>

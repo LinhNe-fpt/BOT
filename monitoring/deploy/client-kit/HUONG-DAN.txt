@@ -1,0 +1,79 @@
+BỘ CÀI CHO MÁY NHẬN GÓI (client — gửi về máy chủ)
+=================================================
+
+Ten thu muc sau khi build:  may-nhan-goi-client  (trong deploy).
+
+Cach hoat dong (quan trong):
+  - MAY CHU: chi NHAN du lieu / anh (monitoring-server).
+  - MAY NHAN GOI = may ban gui thu muc nay: PHAI chay pc-monitor-client.exe TREN MAY DO de gui anh + du lieu len may chu.
+  Token (auth.token) + IP may chu: de may chu chap nhan du lieu.
+
+=== CACH DE NHAT (tren may ngoai) ===
+  1) Copy ca thu muc nay vao may ho (hoac giai zip).
+  2) Copy file auth.token tu may chu vao CUNG thu muc (canh CAI_DAT.bat).
+  3) Double-click  CAI_DAT.bat  -> nhap IP **MAY CHU** (may chay monitoring-server, KHONG phai IP may ban dang ngoi).
+  4) Chon C de tu dong chay khi dang nhap Windows (Task Scheduler) — khuyen nghi.
+  5) Chon C de chay client ngay. Xong.
+
+Thu muc  deploy\may-nhan-goi-client  KHONG co san — tao bang:
+
+  1)  .\build_apps.ps1 -Agent
+  2)  .\client-kit\tao_bo_cai_dat.ps1
+      (tuy chon:  .\client-kit\tao_bo_cai_dat.ps1 -MonitorBaseUrl "http://IP_MAY_CHU:8010")
+
+Sau do zip ca thu muc  may-nhan-goi-client  gui cho may nhan goi.
+
+Thanh phan tung file: xem  GOI_GOM_THANH_PHAN.txt  va  BAT_DAU_O_DAY.txt
+
+Trên máy CHỦ (server):
+  - Chạy monitoring-server.exe, mở /admin hoặc đọc file auth.token cạnh server.
+
+Trong thư mục đó có (chi tiet: GOI_GOM_THANH_PHAN.txt):
+  - BAT_DAU_O_DAY.txt      (buoc nhanh)
+  - CAI_DAT.bat            (cau hinh IP may chu + Task Scheduler + chay client)
+  - TAT_CLIENT.bat         (tat client + tuy chon go task; hoi STOP_PASSWORD neu co)
+  - UNINSTALL.bat          (go cai dat: dung exe + go task + xoa cau hinh / exe tuy chon)
+  - pc_monitor_client_common.ps1  (dung chung — khong chay tay)
+  - pc-monitor-client.exe  (chay nen — gui ve server)
+  - agent.env              (CAI_DAT ghi IP + API_URL; DEVICE_DISPLAY_NAME ten hien thi admin; REGISTER_LOGON_TASK=1 tu dang ky task khi chay exe lan dau; STOP_PASSWORD tuy chon)
+  - auth.token             (copy tu may chu — CUNG noi dung voi server)
+  - LAY_TOKEN_MAY_NAY.bat  (LAY TOKEN tren may nhan goi — hien + clipboard)
+  - CHON_THU_MUC_LUU_ANH.bat  (chon thu muc luu anh moi lan chup — ghi SCREEN_SAVE_DIR vao agent.env)
+  - KIEM_TRA.bat           (kiem tra du file)
+  - COPY_AUTH_TOKEN_TU_MAY_CHU.txt  (huong dan neu thieu token)
+
+Luu anh tren may nhan (tuy chon):
+  - Mac dinh chi gui anh len may chu, khong ghi o dia.
+  - Muon moi lan chup tu dong luu file JPEG vao mot thu muc: chay  CHON_THU_MUC_LUU_ANH.bat
+    (hoac sua agent.env: SCREEN_SAVE_DIR=duong_dan_day_du).
+  - Hoac SCREEN_SAVE_LOCAL=1 de luu vao thu muc  screenshots/  canh .exe.
+  - Sau khi doi agent.env: khoi dong lai pc-monitor-client.exe.
+
+Lần đầu chạy pc-monitor-client.exe:
+  - Hộp thoại ghi ro: chuong trinh chay TREN MAY NAY de gui ve MAY CHU; Agent ID + Token + URL.
+  - Sau do chay nen; anh man hinh MAY NAY gui ve may chu (tuy chon them luu dia nhu tren).
+
+Tu dong chay nen:
+  - CAI_DAT.bat hoi dang ky task "PCMonitorClient" (khi ban dang nhap Windows).
+  - Tat nhanh / go task:  TAT_CLIENT.bat  (dung exe + tuy chon go task).
+  - Go het (uninstall):  UNINSTALL.bat  (dung exe, luon go task, hoi xoa agent.env / auth.token / exe).
+  - Hoac Task Scheduler → Task Scheduler Library → PCMonitorClient → Xoa / Vo hieu hoa (can quyen admin/user tuy cau hinh).
+  - Neu chay trung (task + mo tay .exe), chi mot tien trinh chay — exe co khoa don instance.
+
+Mat khau khi TAT / go task (STOP_PASSWORD):
+  - Trong  agent.env  them dong:  STOP_PASSWORD=MatKhauRieng  (phan biet HOA thuong).
+  - De trong hoac khong dat dong = khong hoi mat khau (mac dinh).
+  - Khi da dat:  TAT_CLIENT.bat  va  UNINSTALL.bat  bat buoc nhap dung; trong  CAI_DAT.bat  neu chon K (khong tu dong) de GO task cung hoi mat khau.
+  - Luu y: nguoi biet van co the End Task trong Task Manager — day la can tro qua script, khong thay the quyen quan tri may.
+
+Task Manager:
+  - Tien trinh van hien thi la pc-monitor-client.exe (Windows luon cho phep user xem process dang chay).
+  - Khong co cach “an khoi Task Manager” hop phap cho app thuong — neu can giau thi do la muc tieu cua malware.
+
+Tuỳ chọn ít lộ thư mục:
+  - Đặt cả thư mục vào vị trí ít người mở (ví dụ %LOCALAPPDATA%\PCMonitor).
+  - Thuộc tính ẩn thư mục (chuột phải thư mục → Thuộc tính → Ẩn).
+
+Lỗi gửi dữ liệu: xem file client_last_error.txt cạnh .exe (nếu có).
+
+Hiện lại hộp thoại token (lần đầu): xóa file client_first_run.done cạnh .exe rồi chạy lại.

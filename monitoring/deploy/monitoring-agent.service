@@ -1,0 +1,15 @@
+[Unit]
+Description=PC Monitor Bot (telemetry)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/monitoring/agent
+EnvironmentFile=/etc/monitoring/agent.env
+ExecStart=/opt/monitoring/agent/venv/bin/python -m pc_monitor_bot
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,46 @@
+BỘ CÀI CHO MÁY NGOÀI (PC Monitor — client)
+========================================
+
+Cach hoat dong (quan trong):
+  - MAY CHU: chi NHAN du lieu / anh (monitoring-server). Khong the "chi co token la lay anh" tu xa.
+  - MAY NGOAI: PHAI chay pc-monitor-client.exe TREN CHINH MAY DO — no chup man hinh MAY DO roi gui len may chu.
+  Token + dia chi may chu de MAY NGOAI duoc phep gui, KHONG thay the viec co agent chay tren may bi giam sat.
+
+=== CACH DE NHAT (tren may ngoai) ===
+  1) Copy ca thu muc nay vao may ho (hoac giai zip).
+  2) Copy file auth.token tu may chu vao CUNG thu muc (canh CAI_DAT.bat).
+  3) Double-click  CAI_DAT.bat  -> nhap IP **MAY CHU** (may chay monitoring-server, KHONG phai IP may ban dang ngoi).
+  4) Chon C de chay client ngay. Xong.
+
+Thư mục  deploy\pc-monitor-client-portable  KHÔNG có sẵn trong repo.
+Bạn phải tạo bằng 2 lệnh sau (từ thư mục monitoring\deploy):
+
+  1)  .\build_apps.ps1 -Agent
+  2)  .\client-kit\tao_bo_cai_dat.ps1
+      (tuy chon IP san:  .\client-kit\tao_bo_cai_dat.ps1 -MonitorBaseUrl "http://IP_MAY_CHU:8010")
+
+Sau bước 2 mới xuất hiện  pc-monitor-client-portable  (gửi zip cả thư mục này).
+
+Trên máy CHỦ (server):
+  - Chạy monitoring-server.exe, mở /admin hoặc đọc file auth.token cạnh server.
+
+Trong thư mục đó có:
+  - CAI_DAT.bat            (DE NHAT: cau hinh IP + chay client)
+  - pc-monitor-client.exe  (chạy nền — sau khi da chay CAI_DAT hoac da sua agent.env)
+  - agent.env              (CAI_DAT tu ghi IP; hoac sua tay MONITOR_BASE_URL / API_URL)
+  - auth.token             (sao chép từ máy chủ, CÙNG nội dung với server)
+  - LAY_TOKEN.bat          (double-click trên máy họ: xem token + copy vào clipboard)
+    Hoặc: chuột phải lay_token.ps1 → Run with PowerShell
+
+Lần đầu chạy pc-monitor-client.exe:
+  - Hộp thoại ghi ro: chuong trinh chay TREN MAY NAY de gui ve MAY CHU; Agent ID + Token + URL.
+  - Sau do chay nen; anh man hinh MAY NAY gui ve may chu (khong luu screenshots/ tren may ho).
+
+Tuỳ chọn “kín” hơn:
+  - Đặt cả thư mục vào vị trí ít người mở (ví dụ %LOCALAPPDATA%\PCMonitor).
+  - Thuộc tính ẩn thư mục (chuột phải thư mục → Thuộc tính → Ẩn).
+  - Thêm shortcut vào Startup (shell:startup) trỏ tới pc-monitor-client.exe nếu cần tự chạy khi đăng nhập.
+
+Lỗi gửi dữ liệu: xem file client_last_error.txt cạnh .exe (nếu có).
+
+Hiện lại hộp thoại token (lần đầu): xóa file client_first_run.done cạnh .exe rồi chạy lại.

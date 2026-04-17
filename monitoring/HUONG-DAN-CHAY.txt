@@ -1,0 +1,168 @@
+HUONG DAN CHAY — PC MONITOR (may chu + may nhan)
+================================================
+
+Tong quan
+---------
+  - MAY CHU: chay monitoring-server.exe — nhan du lieu + anh tu agent, luu SQLite + thu muc captures.
+  - MAY NHAN (agent): chay pc-monitor-client.exe — gui du lieu ve may chu (cung token trong auth.token).
+
+File auth.token
+---------------
+  - Noi dung 1 dong (hex) phai GIONG NHAU tren may chu va tren moi may agent.
+  - May chu: file auth.token dat CUNG thu muc voi monitoring-server.exe (hoac dat BEARER_TOKEN trong server.env).
+  - May nhan: copy auth.token vao CUNG thu muc voi pc-monitor-client.exe (trong bo may-nhan-goi-client).
+
+
+=== A) CHAY BANG FILE .EXE (khuyen dung sau khi build) ===
+
+1) Build (tren may dev, trong PowerShell, thu muc monitoring\deploy):
+
+     .\build_apps.ps1
+
+   Ket qua trong:  deploy\dist\
+     - monitoring-server.exe
+     - pc-monitor-client.exe  (agent may nhan — khong con dong goi pc-monitor-bot / -gui)
+     - monitoring-alerter.exe  (neu build full)
+     - auth.token  (neu chua co se duoc tao; giu file nay lam chuan)
+
+   Tao bo gui may nhan:
+
+     .\client-kit\tao_bo_cai_dat.ps1
+
+   Ket qua:  deploy\may-nhan-goi-client\  (zip ca thu muc de gui).
+
+2) May chu (server)
+
+   - Copy deploy\dist\  len may chu (hoac chi can monitoring-server.exe + auth.token cung thu muc).
+   - Mo firewall Windows: cho phep cong TCP 8010 (hoac cong ban dat trong bien PORT).
+   - Double-click monitoring-server.exe  (hoac chay tu CMD/PowerShell trong dung thu muc).
+
+   Mac dinh:
+     - Lang nghe: 0.0.0.0:8010
+     - Trang admin: http://<IP_MAY_CHU>:8010/admin
+     - Agent gui ve: http://<IP_MAY_CHU>:8010/api/agent/data
+
+   Tuy chon (bien moi truong hoac file server.env canh .exe):
+     - PORT=8010
+     - HOST=0.0.0.0
+     - BEARER_TOKEN=...  (neu khong muon dung auth.token)
+     - ADMIN_TOKEN=...   (tuy chon, rieng cho /admin; bo trong thi dung chung BEARER_TOKEN)
+
+   Du lieu:
+     - monitor.db   — cung thu muc .exe
+     - captures\    — anh man hinh theo tung agent
+
+   2b) Web admin (giao dien danh sach may + anh man hinh)
+
+   - Mo trinh duyet (Chrome / Edge / Firefox) tren MAY BAT KY trong mang (hoac tren chinh may chu):
+       http://<IP_MAY_CHU>:8010/admin
+     Neu xem tren chinh may chu:  http://127.0.0.1:8010/admin
+
+   - O truong "Token": dan NGUYEN DONG dau tien trong file auth.token (cung noi dung
+     BEARER_TOKEN / ADMIN_TOKEN neu ban dat trong server.env).
+     Neu da dat ADMIN_TOKEN rieng thi nhap ADMIN_TOKEN vao o nay de vao /admin.
+
+   - Bam "Tai danh sach may": cot trai hien cac may da co agent; bam vao mot may de xem
+     luoi anh man hinh ben phai (goi API /api/admin/gallery/...).
+     Nut "Lam moi anh" tai lai anh cho may dang chon.
+
+   - Token duoc luu tam trong trinh duyet (session) cho lan lam viec sau do cung may.
+
+   - Link "Mo trang gallery HTML" hoac duong dan dang /files/<thu_muc>/ mo trang xem anh
+     dang danh sach co dien (neu can chia se URL).
+
+   Luu y bao mat: /admin va /api/admin/* chi dung trong mang tin cay; khong dat server
+   ra Internet cong khai neu chua co HTTPS / tuong lua chat che.
+
+3) May nhan (client)
+
+   - Giai zip bo may-nhan-goi-client, dam bao co auth.token (cung noi dung may chu).
+   - Chay CAI_DAT.bat — nhap IP MAY CHU (vi du 192.168.1.50), chon tu dong khi dang nhap neu can, chon chay client ngay.
+   - Hoac chay truc tiep pc-monitor-client.exe sau khi da cau hinh agent.env (MONITOR_BASE_URL / API_URL).
+
+   - Ten hien thi tren /admin: trong agent.env dat DEVICE_DISPLAY_NAME=Ten de doc (Agent ID van la dinh danh luu anh).
+   - Tu dong khi dang nhap: CAI_DAT van co the dang ky Task Scheduler; neu agent.env co REGISTER_LOGON_TASK=1 (mac dinh trong bo moi),
+     lan chay dau pc-monitor-client.exe cung tu dang ky task mot lan (file register_logon_task.done danh dau da lam).
+
+   - Luu anh moi lan chup vao thu muc tuy chon (tren may nhan): CHON_THU_MUC_LUU_ANH.bat
+     hoac agent.env: SCREEN_SAVE_DIR=duong_dan_day_du — khoi dong lai client sau khi doi.
+     Van gui anh len may chu nhu cu. Xem them deploy\client-kit\HUONG-DAN.txt.
+
+   Tat / go cai dat: TAT_CLIENT.bat hoac UNINSTALL.bat (xem HUONG-DAN.txt trong bo).
+
+
+=== B) CHAY KHI DANG CODE (Python, dev) ===
+
+May chu (tu thu muc monitoring\server):
+
+     pip install -r requirements.txt
+     python run_server.py
+
+   Mac dinh dev thuong la port 8000 (khac .exe mac dinh 8010). Agent can API_URL tro dung port.
+
+   Web admin (dev):  http://127.0.0.1:8000/admin  - cung cach nhap token nhu muc 2b.
+
+May agent (tu thu muc monitoring\agent):
+
+     pip install -r requirements.txt
+     Dat SECRET_TOKEN / auth.token / agent.env theo config.py
+     python bot.py                    # co console
+   hoac silent (giong client build):
+
+     $env:SILENT_CLIENT="1"; python -c "import os; os.environ['SILENT_CLIENT']='1'; from pc_monitor_bot.app import main_silent; main_silent()"
+
+
+=== C) KIEM TRA NHANH ===
+
+  - Server da chay: mo  http://<IP_MAY_CHU>:8010/admin  (hoac :8000/admin khi python run_server.py).
+  - Dien token -> "Tai danh sach may" -> chon mot dong may -> xem anh ben phai.
+  - Neu agent da chay: co it nhat mot may trong danh sach; SCREEN_CAPTURE=1 thi co anh.
+
+
+=== D) GOI Y LOI THUONG GAP ===
+
+  - 401 / khong gui duoc: token agent khac token server — copy lai auth.token dung file.
+  - Admin bao loi 401 / khong tai duoc danh sach: token o o "Token" sai hoac thua khoang
+    trang/dong — chi lay dung 1 dong trong auth.token (hoac ADMIN_TOKEN).
+  - Khong mo duoc admin tu may khac: firewall / sai IP / server chi lang nghe localhost (kiem tra HOST).
+  - Port bi chiem: doi PORT (va API_URL / MONITOR_BASE_URL tren agent cho khop).
+
+
+=== E) CANH BAO (monitoring-alerter) ===
+
+  Chay dinh ky tren may chu (Task Scheduler) hoac tay:
+
+     cd monitoring\alerter
+     $env:MONITOR_DB_PATH = "C:\path\to\monitor.db"
+     $env:ALERT_WEBHOOK_URL = "https://..."   # tuy chon: Slack/Discord/custom hook
+     python alerter.py
+
+  Hoac dung monitoring-alerter.exe trong deploy\dist, dat MONITOR_DB_PATH tro dung monitor.db
+  (cung thu muc monitoring-server.exe neu chay tu do).
+
+  - USB: tren agent DETECT_USB=1 (mac dinh). Cam o USB -> alerter in/webhook type  usb_or_removable.
+  - Phan mem khong trong danh sach "duoc phep": trong agent.env dat
+      ALLOWED_PROCESS_NAMES=exe1.exe,exe2.exe,...  (liet ke day du exe hop le tren may)
+      REGISTERED_PROCESS_CHECK=1
+    Khi co process khac danh sach (sau khi bo qua mot so exe he thong), agent gui su kien
+    unregistered_software (chi lap lai khi danh sach vi pham thay doi).
+  - Trinh duyet qua lau (nghi lam viec rieng - heuristic): chi Windows. Dat
+      LONG_BROWSER_ALERT_SECONDS=300
+    (vd 5 phut). Dua vao cua so dang nhan tien canh + ten process trinh duyet (Chrome, Edge, ...),
+    khong doc URL hay ban phim. Moi phien (cung tab/tieu de) chi canh bao mot lan cho den khi doi cua so.
+
+  - Danh sach web (ten mien) gan day — thu dong, KHONG truy cap vao tung site:
+      DNS_CACHE_DOMAINS=1
+      DNS_CACHE_DOMAIN_MAX=120
+    Agent goi PowerShell Get-DnsClientCache; /admin hien danh sach khi chon may. Day la ten mien da
+    phan giai gan day, khong dong nghia dang mo trang do; khong co duong dan URL day du.
+
+  - Luu luong mang (tong tat ca NIC, khong theo tung site) + thoi gian trinh duyet foreground (Windows):
+      TRACK_NETWORK_IO=1, TRACK_BROWSER_FOREGROUND=1 — hien tren the may trong /admin.
+      NETWORK_ALERT_BYTES_PER_INTERVAL=... (byte / mot chu ky) — canh bao high_network_usage (alerter/webhook).
+    Chan hay gioi han bang thong that su: dung proxy/tuong lua trong LAN, khong co trong agent.
+
+  Alerter doc them: alerter\alerter.py (dau file).
+
+
+Chi tiet bo may nhan: deploy\client-kit\HUONG-DAN.txt va BAT_DAU_O_DAY.txt

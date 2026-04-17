@@ -1,0 +1,32 @@
+GOI GOM THANH PHAN — MAY NHAN GOI (client gui ve may chu)
+==========================================================
+
+Ten goi "may nhan goi" = may duoc ban giao THU MUC NAY.
+May do CHAY pc-monitor-client de GUI anh + du lieu ve MAY CHU (server).
+(May chu la may chay monitoring-server — KHONG phai may nay.)
+
+Thanh phan trong thu muc:
+
+  1) BAT_DAU_O_DAY.txt     — doc buoc nhanh (auth.token + CAI_DAT + tu dong khi dang nhap)
+  2) CAI_DAT.bat           — cau hinh IP may chu + dang ky Task Scheduler (tu dong) + chay client
+  3) cai_dat.ps1           — script PowerShell (duoc CAI_DAT.bat goi)
+  4) pc_monitor_client_common.ps1 — ham chung (Task + STOP_PASSWORD); duoc cai_dat / tat_client / uninstall dot-source
+  5) TAT_CLIENT.bat        — tat pc-monitor-client + tuy chon go task (hoi STOP_PASSWORD neu agent.env co)
+  6) tat_client.ps1
+  7) UNINSTALL.bat         — go cai dat: dung exe, go task, xoa cau hinh / exe (hoi STOP_PASSWORD neu co)
+  8) uninstall.ps1
+  9) pc-monitor-client.exe — chuong trinh chay nen, gui ve server
+ 10) agent.env             — cau hinh (CAI_DAT tu ghi IP; DEVICE_DISPLAY_NAME ten hien thi admin; REGISTER_LOGON_TASK tu dang ky task lan dau khi chay exe; STOP_PASSWORD tuy chon)
+ 11) agent.env.template    — ban mau
+ 12) auth.token            — CUNG noi dung file auth.token tren may chu (copy tu may chay monitoring-server)
+ 13) LAY_TOKEN.bat / LAY_TOKEN_MAY_NAY.bat — hien token tren MAY NAY + copy clipboard (noi dung auth.token)
+ 14) lay_token.ps1
+ 15) CHON_THU_MUC_LUU_ANH.bat — chon thu muc luu anh moi lan chup (ghi SCREEN_SAVE_DIR vao agent.env)
+ 16) chon_thu_muc_luu_anh.ps1
+ 17) KIEM_TRA.bat          — kiem tra du file (goi kiem_tra_bo.ps1)
+ 18) kiem_tra_bo.ps1
+ 19) HUONG-DAN.txt         — huong dan day du
+ 20) COPY_AUTH_TOKEN_TU_MAY_CHU.txt — doc neu chua co auth.token
+ 21) GOI_GOM_THANH_PHAN.txt — file nay
+
+Neu khong co file auth.token: copy tu may chu vao day (cung thu muc voi .exe).

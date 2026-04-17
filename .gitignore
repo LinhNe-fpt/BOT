@@ -1,0 +1,43 @@
+# Secrets and per-machine config
+auth.token
+**/auth.env
+agent.env
+!**/agent.env.example
+!**/agent.env.template
+
+# SQLite, agent queue
+*.db
+**/queue.jsonl
+**/outbox/
+
+# Local client state
+client_last_error.txt
+client_first_run.done
+register_logon_task.done
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.egg-info/
+
+# PyInstaller build output & binaries
+monitoring/deploy/build/
+monitoring/deploy/dist/*.exe
+monitoring/deploy/dist/captures/
+monitoring/deploy/dist-control/
+**/*.exe
+*.zip
+
+# Local screenshots (sensitive / large)
+monitoring/agent/screenshots/
+monitoring/agent/screen_last.jpg
+
+# IDE & OS
+.idea/
+.vscode/
+Thumbs.db
+Desktop.ini
+*.log
